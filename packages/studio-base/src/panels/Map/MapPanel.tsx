@@ -6,10 +6,11 @@ import produce from "immer";
 import {
   CircleMarker,
   FeatureGroup,
-  geoJSON,
+  LatLng,
   LatLngBounds,
   Layer,
   LayerGroup,
+  geoJSON,
   Map as LeafMap,
   TileLayer,
 } from "leaflet";
@@ -462,18 +463,37 @@ function MapPanel(props: MapPanelProps): JSX.Element {
     [onClick, onHover],
   );
 
-  const addGeoJsonMessage = useCallback(
-    (message: GeoJsonMessage, group: FeatureGroup) => {
-      const parsed = JSON.parse(message.message.geojson) as Parameters<typeof geoJSON>[0];
+  const addGeoJsonMessage =
+    useCallback((message: GeoJsonMessage, group: FeatureGroup) => {
+      const json = JSON.parse(message.message.geojson);
+      const parsed = json as Parameters<typeof geoJSON>[0];
+
+      let style = (feature: any) => { return { color: feature.properties.color ?? '#0000ff' } };
+
+      if (config.topicColors[message.topic]) {
+        style = () => { return { color: config.topicColors[message.topic] }; }
+      }
+
+      function makeLayer(_pt: any, latlng: LatLng) {
+        let marker = new CircleMarker(latlng, {
+          radius: POINT_MARKER_RADIUS,
+          color: undefined,
+          stroke: false,
+          fillOpacity: .7,
+          interactive: true,
+        });
+        if (json.properties.tooltip) {
+          marker.bindTooltip(json.properties.tooltip);
+        }
+        return marker;
+      }
+
       geoJSON(parsed, {
+        pointToLayer: makeLayer,
         onEachFeature: (_feature, layer) => addGeoFeatureEventHandlers(message, layer),
-        style: config.topicColors[message.topic]
-          ? { color: config.topicColors[message.topic] }
-          : {},
+        style: style
       }).addTo(group);
-    },
-    [addGeoFeatureEventHandlers, config.topicColors],
-  );
+    }, [addGeoFeatureEventHandlers, config.topicColors]);
 
   // calculate center point from blocks if we don't have a center point
   useEffect(() => {
