@@ -603,7 +603,7 @@ function MapPanel(props: MapPanelProps): JSX.Element {
     for (const [topic, messages] of Object.entries(geoByTopic)) {
       const topicLayer = topicLayers.get(topic);
       if (topicLayer) {
-        topicLayer.currentFrame.clearLayers();
+        //topicLayer.currentFrame.clearLayers();
         for (const message of messages) {
           addGeoJsonMessage(message, topicLayer.currentFrame);
         }
