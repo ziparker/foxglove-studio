@@ -479,7 +479,7 @@ function MapPanel(props: MapPanelProps): JSX.Element {
           radius: POINT_MARKER_RADIUS,
           color: undefined,
           stroke: false,
-          fillOpacity: .7,
+          fillOpacity: .4,
           interactive: true,
         });
         if (json.properties.tooltip) {
